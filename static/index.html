@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IG 發文儀表板 | AI 社群經理</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <!-- 登入畫面 -->
+    <div id="loginScreen" class="login-overlay">
+        <div class="glass-panel login-box">
+            <h2>🔒 系統權限驗證</h2>
+            <p>請輸入管理員密碼以進入控制台</p>
+            <input type="password" id="passwordInput" placeholder="請輸入密碼 (提示: admin123)" autocomplete="off">
+            <button onclick="login()" class="primary-action-btn" style="margin-top: 15px;">登入系統</button>
+            <p id="loginError" class="error-msg hidden">密碼錯誤，請重新輸入！</p>
+        </div>
+    </div>
+
+    <!-- 主儀表板 (左右雙屏) -->
+    <div id="mainDashboard" class="split-container hidden">
+        
+        <!-- 左側：發文控制台 -->
+        <div class="glass-panel left-panel">
+            <header>
+                <h1>📱 IG 全自動發文儀表板</h1>
+                <p>選擇草稿影片，AI 發想文案，一鍵發布！</p>
+            </header>
+
+            <main>
+                <div class="input-section column-layout">
+                    <label for="videoSelect">1. 選擇待發布的草稿影片 (draft_videos/)</label>
+                    <div class="flex-row">
+                        <select id="videoSelect">
+                            <option value="">正在載入影片...</option>
+                        </select>
+                        <button onclick="loadVideos()" class="secondary-btn">🔄 整理</button>
+                    </div>
+                    
+                    <label for="topicInput" style="margin-top:15px;">2. 確認影片主題</label>
+                    <div class="flex-row">
+                        <input type="text" id="topicInput" placeholder="例如：2026 福斯汽車大降價" autocomplete="off">
+                        <button id="generateBtn" onclick="generateCaption()">✨ 請 AI 寫文案</button>
+                    </div>
+                </div>
+
+                <div id="loading" class="loading hidden">
+                    <div class="spinner"></div>
+                    <p id="loadingText">AI 正在發想文案，請稍候...</p>
+                </div>
+
+                <div id="result" class="result hidden">
+                    <div class="caption-container column-layout">
+                        <h3>📝 3. 人工審閱 (可自由修改)</h3>
+                        
+                        <label for="captionEditor">IG 貼文文案：</label>
+                        <textarea id="captionEditor" rows="6"></textarea>
+                        
+                        <label for="voiceEditor">影片配音腳本：</label>
+                        <textarea id="voiceEditor" rows="3"></textarea>
+                        
+                        <div style="margin: 10px 0; display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="useAiVoice" style="width:20px; height:20px;">
+                            <label for="useAiVoice" style="color: #dc2743; font-weight: 700; cursor: pointer;">開啟 AI 自動配音 (微軟曉辰)</label>
+                        </div>
+                        
+                        <button id="publishBtn" class="primary-action-btn" onclick="publishToIG()">
+                            🚀 確定沒問題，正式發布
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="successScreen" class="success-screen hidden">
+                    <div class="success-icon">✅</div>
+                    <h2>發布成功！</h2>
+                    <p>影片已歸檔，請查看右側監控面板。</p>
+                    <button onclick="resetDashboard()" class="secondary-btn" style="margin-top:20px;">發布下一支</button>
+                </div>
+            </main>
+        </div>
+        
+        <!-- 右側：IG 監控面板 -->
+        <div class="glass-panel right-panel">
+            <header style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="text-align: left;">
+                    <h1 style="font-size: 1.5rem; margin:0;">📊 Meta API 監控中心</h1>
+                    <p>貼文與成效追蹤</p>
+                </div>
+                <div class="tab-buttons">
+                    <button id="tabFeedBtn" class="tab-btn active" onclick="switchTab('feed')">貼文動態</button>
+                    <button id="tabAnalyticsBtn" class="tab-btn" onclick="switchTab('analytics')">成效分析</button>
+                </div>
+            </header>
+            
+            <!-- 貼文動態區塊 -->
+            <div id="igFeed" class="ig-feed">
+                <!-- 這裡會由 JS 動態生成已發布的影片列表與模擬留言 -->
+                <p style="text-align:center; color:#94a3b8; margin-top:50px;">載入中...</p>
+            </div>
+            
+            <!-- 數據分析區塊 -->
+            <div id="analyticsPanel" class="ig-feed hidden">
+                <div class="analytics-card">
+                    <h4 style="color:#1e293b; margin-bottom: 10px;">總互動數 (讚 & 留言)</h4>
+                    <canvas id="engagementChart" height="200"></canvas>
+                </div>
+                <div class="analytics-card">
+                    <h4 style="color:#1e293b; margin-bottom: 10px;">貼文點擊率 (CTR %)</h4>
+                    <canvas id="ctrChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 載入 Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
