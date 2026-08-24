@@ -1,34 +1,56 @@
-# AI Content Factory (自動化 IG 圖影音智能體)
+# Auto Reels Agent (企業級 AI 社群營運系統) 🚀
 
-這是一個基於 Python 與 CrewAI 框架打造的「全自動社群內容產出系統」。只要輸入一個主題，系統就會自動上網查資料、撰寫文案、合成圖片，並透過微軟神經網路語音自動剪輯出包含配音的 MP4 短影音。
+這是一套為「現代社群小編與行銷團隊」量身打造的 **企業級 AI 社群營運 SaaS 軟體**。
+有別於傳統的全自動爬蟲發文機，本系統強調 **「Human-in-the-Loop (人機協作)」** 與 **「視覺化數據監控」**，提供最安全、最具質感的社群發布體驗。
 
-## 🌟 核心功能
+## 🌟 系統亮點 (核心功能)
 
-*   **🔍 資料研究 (Search Agent)**：內建 DuckDuckGo 搜尋工具，自動抓取最新網路資訊。
-*   **✍️ 內容創作 (Copywriter Agent)**：使用 Google Gemini 模型將生硬資料轉化為活潑的 IG 貼文與配音腳本，並確保以 JSON 格式精準輸出。
-*   **🎨 視覺排版 (Visual Agent)**：利用 Pillow 自動產生 1080x1080 高質感知識圖卡。
-*   **🎬 影音剪輯 (Video Agent)**：結合 `edge-tts` (微軟超逼真語音) 與 `moviepy`，一鍵全自動壓製 MP4 影片。
-*   **🤖 企業級調度 (CrewAI)**：導入 CrewAI 多智能體框架，讓 Agent 之間自主協作、完美交接。
+*   **🔐 企業級權限控管 (Login Wall)**
+    *   內建深色玻璃質感的登入畫面，必須持有管理員密碼才能解鎖控制台，確保社群帳號安全。
+*   **🧠 AI 雙核智能發想 (Gemini x TTS)**
+    *   自動偵測待發布的短影音，呼叫 **Google Gemini** 自動產出「高互動 IG 貼文」與「口語化配音腳本」。
+    *   支援一鍵開啟 **微軟 TTS (曉辰)** 語音合成，自動為影片配音。
+*   **🛡️ IG 業界標準轉檔 (Video Formatter)**
+    *   底層整合 `moviepy`，在發布前強制將任何格式的影片裁切/縮放為 **1080x1920 (9:16) 最佳比例** 與 H.264 編碼，確保 IG 原廠 API 100% 接收成功。
+*   **📱 雙螢幕即時監控台 (Split-Screen Dashboard)**
+    *   突破 Instagram 原廠禁止 iframe 的限制，自建 **Meta Graph API 模擬監控中心**。
+    *   發布成功後，右側面板會立刻同步最新貼文，並模擬粉絲真實互動留言。
+*   **📈 商業智慧分析中心 (BI Analytics)**
+    *   不需依賴笨重的大型資料庫，採用輕量級 `JSON File-based DB`。
+    *   整合 **Chart.js** 繪製高品質「按讚留言長條圖」與「CTR 點擊率折線圖」，讓成效追蹤一目了然。
 
 ## 🛠️ 技術堆疊 (Tech Stack)
 
-*   **語言**：Python 3
+*   **後端框架**：FastAPI, Python 3
 *   **AI 大腦**：Google Gemini (gemini-3.6-flash)
-*   **Agent 框架**：CrewAI, LiteLLM
-*   **影像與影音**：Pillow (PIL), MoviePy, edge-tts
-*   **資料爬蟲**：DuckDuckGo Search (ddgs)
+*   **前端介面**：HTML5, CSS3 (Glassmorphism + IG Marketing Aesthetic), Vanilla JS
+*   **資料庫**：JSON File-based DB (`metrics.json`)
+*   **影音處理**：MoviePy, edge-tts
+*   **資料視覺化**：Chart.js
 
-## 🚀 快速開始
+## 🚀 快速開始 (Quick Start)
 
-1. 複製專案並安裝依賴套件：
-   ```bash
-   pip install -r requirements.txt
-   ```
-2. 建立 `.env` 檔案並填入你的 Gemini API Key：
-   ```env
-   GEMINI_API_KEY=你的金鑰
-   ```
-3. 執行終極整合版 Agent：
-   ```bash
-   python crew_agent.py
-   ```
+### 1. 安裝環境與依賴套件
+```bash
+# 建議使用虛擬環境
+pip install -r requirements.txt
+```
+
+### 2. 環境變數設定
+建立一個 `.env` 檔案並填入你的 Gemini API Key：
+```env
+GEMINI_API_KEY=你的金鑰
+```
+
+### 3. 準備影片草稿
+在專案根目錄下建立 `draft_videos` 資料夾，並放入你剪接好的 `.mp4` 影片（檔名會自動作為 AI 發想的主題，例如 `iPhone17爆料.mp4`）。
+
+### 4. 啟動伺服器
+```bash
+uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+```
+啟動後，請打開瀏覽器前往 👉 `http://localhost:8000`
+（預設登入密碼為：`admin123`）
+
+---
+*專為期末專題打造的頂級火力展示，完美詮釋 AI 與商業營運的結合。*
