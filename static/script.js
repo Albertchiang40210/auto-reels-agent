@@ -215,6 +215,7 @@ async function loadIGFeed() {
 // --- Chart.js 分析圖表邏輯 ---
 let engagementChartInstance = null;
 let ctrChartInstance = null;
+let sentimentChartInstance = null;
 
 async function loadAnalytics() {
     try {
@@ -226,9 +227,21 @@ async function loadAnalytics() {
         const comments = topics.map(t => data[t].comments);
         const ctrs = topics.map(t => data[t].ctr);
         
+        let avgPos = 0, avgNeu = 0, avgNeg = 0;
         if (topics.length === 0) {
             topics.push('暫無資料');
             likes.push(0); comments.push(0); ctrs.push(0);
+        } else {
+            // 計算總平均輿情
+            topics.forEach(t => {
+                const s = data[t].sentiment || { positive: 60, neutral: 30, negative: 10 };
+                avgPos += s.positive;
+                avgNeu += s.neutral;
+                avgNeg += s.negative;
+            });
+            avgPos = Math.round(avgPos / topics.length);
+            avgNeu = Math.round(avgNeu / topics.length);
+            avgNeg = Math.round(avgNeg / topics.length);
         }
         
         // 渲染互動數圖表
@@ -275,6 +288,30 @@ async function loadAnalytics() {
                 plugins: { legend: { labels: { color: '#1e293b', font: { weight: 'bold' } } } }
             }
         });
+
+        // 渲染輿情分析甜甜圈圖表
+        const ctxSent = document.getElementById('sentimentChart').getContext('2d');
+        if (sentimentChartInstance) sentimentChartInstance.destroy();
+        sentimentChartInstance = new Chart(ctxSent, {
+            type: 'doughnut',
+            data: {
+                labels: ['好評 (Positive)', '中立 (Neutral)', '負評 (Negative)'],
+                datasets: [{
+                    data: [avgPos, avgNeu, avgNeg],
+                    backgroundColor: ['#10b981', '#94a3b8', '#f43f5e'],
+                    hoverOffset: 4,
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#1e293b', font: { weight: 'bold' }, padding: 15 } }
+                }
+            }
+        });
+
     } catch (err) {
         console.error('載入分析數據失敗', err);
     }

@@ -129,10 +129,22 @@ def publish(req: PublishRequest):
         # 3. 產生並儲存分析數據 (寫入 metrics.json)
         metrics = load_metrics()
         topic = os.path.splitext(req.filename)[0]
+        
+        # 產生隨機但合理的輿情比例 (加總100%)
+        pos = random.randint(50, 85)
+        neu = random.randint(10, 30)
+        neg = 100 - pos - neu
+        if neg < 0: neg = 0 # 安全機制
+        
         metrics[topic] = {
             "likes": random.randint(500, 5000),
             "comments": random.randint(50, 500),
-            "ctr": round(random.uniform(2.5, 12.5), 1) # 2.5% ~ 12.5%
+            "ctr": round(random.uniform(2.5, 12.5), 1), # 2.5% ~ 12.5%
+            "sentiment": {
+                "positive": pos,
+                "neutral": neu,
+                "negative": neg
+            }
         }
         save_metrics(metrics)
         
