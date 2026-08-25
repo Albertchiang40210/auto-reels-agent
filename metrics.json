@@ -1,0 +1,23 @@
+{
+    "test_out": {
+        "likes": 4951,
+        "comments": 300,
+        "ctr": 10.3,
+        "sentiment": {
+            "positive": 64,
+            "neutral": 18,
+            "negative": 18
+        }
+    },
+    "ig_ready_iPhone17最新爆料": {
+        "caption": "【Auto Reels 獨家速報】\n\n關於「iPhone17最新爆料」的最新消息都在這！🔥\n快留言告訴我們你的看法吧！👇\n\n#最新消息",
+        "likes": 2849,
+        "comments": 492,
+        "ctr": 2.8,
+        "sentiment": {
+            "positive": 64,
+            "neutral": 14,
+            "negative": 22
+        }
+    }
+}

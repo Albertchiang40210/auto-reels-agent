@@ -19,6 +19,7 @@ os.makedirs("published_videos", exist_ok=True)
 
 class GenerateRequest(BaseModel):
     topic: str
+    filename: str = ""
 
 class PublishRequest(BaseModel):
     filename: str
@@ -56,30 +57,98 @@ def get_analytics():
     """取得所有貼文的分析數據"""
     return load_metrics()
 
+@app.delete("/api/published_videos/{filename}")
+def delete_published_video(filename: str):
+    """刪除指定的已發布影片及其成效數據"""
+    # 1. 刪除實體檔案
+    file_path = os.path.join("published_videos", filename)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    
+    # 2. 刪除 metrics 紀錄
+    topic = filename.replace("ig_ready_", "", 1).replace(".mp4", "")
+    metrics = load_metrics()
+    if topic in metrics:
+        del metrics[topic]
+        save_metrics(metrics)
+        
+    return {"status": "success", "message": f"{filename} 已刪除"}
+
+class EditCaptionRequest(BaseModel):
+    caption: str
+
+@app.put("/api/published_videos/{topic}")
+def edit_published_video(topic: str, req: EditCaptionRequest):
+    """更新已發布貼文的文案"""
+    metrics = load_metrics()
+    if topic not in metrics:
+        raise HTTPException(status_code=404, detail="找不到該貼文紀錄")
+    
+    metrics[topic]["caption"] = req.caption
+    save_metrics(metrics)
+    return {"status": "success", "message": "文案更新成功"}
+
 import json
 import random
+import uuid
+from fastapi import BackgroundTasks
 
-@app.post("/api/generate_caption")
-def generate(req: GenerateRequest):
-    """叫 AI 針對主題想文案與語音腳本 (含展示用備用機制)"""
-    if not req.topic:
-        raise HTTPException(status_code=400, detail="請提供主題")
+# 儲存任務狀態
+tasks = {}
+
+def process_generate_task(task_id: str, topic: str, filename: str):
     try:
-        json_str = generate_caption(req.topic)
-        # 嘗試解析回傳的 JSON
-        try:
-            clean_str = json_str.replace("```json", "").replace("```", "").strip()
-            data = json.loads(clean_str)
-            return data
-        except Exception:
-            return {"caption": json_str, "voice_script": "無法自動解析語音腳本，請自行撰寫。"}
+        json_str = generate_caption(topic, filename)
+        clean_str = json_str.replace("```json", "").replace("```", "").strip()
+        data = json.loads(clean_str)
+        if not data or "options" not in data:
+            raise ValueError("API回傳了空資料或格式錯誤")
+        tasks[task_id] = {"status": "completed", "data": data}
     except Exception as e:
         print(f"⚠️ API 呼叫失敗: {e}，自動切換為 Demo 備用模式！")
-        # 為了確保期末報告萬無一失，當遇到 429 Rate Limit 時自動給出極具質感的假資料
-        return {
-            "caption": f"【Auto Reels 獨家速報】\n\n關於「{req.topic}」的最新消息都在這！🔥\n我們剛剛整理了最完整的資訊，一分鐘帶你快速了解核心重點。\n快留言告訴我們你的看法吧！👇\n\n#最新消息 #深度解析 #AutoReels #行銷必看 #話題熱門",
-            "voice_script": f"嗨大家好！今天我們要來聊聊關於{req.topic}的超夯話題！你知道這背後隱藏了什麼秘密嗎？短短幾秒鐘，讓我帶你快速了解！"
+        tasks[task_id] = {
+            "status": "completed",
+            "data": {
+                "suggestions": "💡 總編輯建議：此為備用模式生成的文案，建議您在晚上 8:00 至 10:00 之間發布，此時段是用戶滑 IG 的高峰期，能獲得最高互動率。",
+                "options": [
+                    {
+                        "id": "A",
+                        "style": "熱血播報",
+                        "caption": f"【Auto Reels 獨家速報】\n\n關於「{topic}」的最新消息都在這！🔥\n快留言告訴我們你的看法吧！👇\n\n#最新消息",
+                        "voice_script": f"嗨大家好！今天我們要來聊聊關於{topic}的超夯話題！"
+                    },
+                    {
+                        "id": "B",
+                        "style": "專業分析",
+                        "caption": f"深入探討「{topic}」背後的意義 📈\n透過數據分析帶你掌握趨勢。\n\n#專業解析",
+                        "voice_script": f"各位觀眾，關於{topic}，我們從三個面向來深入分析..."
+                    },
+                    {
+                        "id": "C",
+                        "style": "引發好奇",
+                        "caption": f"你絕對想不到！關於「{topic}」的隱藏秘密 🤫\n看到最後有驚喜！\n\n#秘密大公開",
+                        "voice_script": f"你知道嗎？其實{topic}背後，藏著一個大家都沒發現的秘密..."
+                    }
+                ]
+            }
         }
+
+@app.get("/api/task_status/{task_id}")
+def get_task_status(task_id: str):
+    if task_id not in tasks:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return tasks[task_id]
+
+@app.post("/api/generate_caption")
+def generate(req: GenerateRequest, background_tasks: BackgroundTasks):
+    """將生成任務放進背景佇列，並回傳 Task ID"""
+    if not req.topic:
+        raise HTTPException(status_code=400, detail="請提供主題")
+    
+    task_id = str(uuid.uuid4())
+    tasks[task_id] = {"status": "processing"}
+    background_tasks.add_task(process_generate_task, task_id, req.topic, req.filename)
+    return {"task_id": task_id}
 
 class PublishRequest(BaseModel):
     filename: str
@@ -137,6 +206,7 @@ def publish(req: PublishRequest):
         if neg < 0: neg = 0 # 安全機制
         
         metrics[topic] = {
+            "caption": req.caption, # 儲存發布時的真實文案
             "likes": random.randint(500, 5000),
             "comments": random.randint(50, 500),
             "ctr": round(random.uniform(2.5, 12.5), 1), # 2.5% ~ 12.5%
@@ -152,11 +222,24 @@ def publish(req: PublishRequest):
     else:
         raise HTTPException(status_code=500, detail="發布失敗，請查看終端機日誌")
 
+# 掛載影片資料夾以便前端播放
+app.mount("/published_videos", StaticFiles(directory="published_videos"), name="published_videos")
+
 # 掛載網頁前端 (將 / 對應到 static 資料夾內的 index.html)
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn
+    import webbrowser
+    import threading
+
+    def open_browser():
+        webbrowser.open("http://localhost:8000")
+
     print("🌐 啟動 Auto Reels Agent Web UI...")
     print("👉 請在瀏覽器開啟: http://localhost:8000")
+    
+    # 在 1.5 秒後自動開啟瀏覽器 (等待 uvicorn 啟動)
+    threading.Timer(1.5, open_browser).start()
+    
     uvicorn.run(app, host="0.0.0.0", port=8000)

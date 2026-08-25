@@ -1,4 +1,4 @@
-from moviepy.editor import VideoFileClip, ColorClip, CompositeVideoClip, AudioFileClip
+from moviepy import VideoFileClip, ColorClip, CompositeVideoClip, AudioFileClip
 import os
 
 def format_video_for_ig_reels(input_path: str, output_path: str, audio_path: str = None):
@@ -20,7 +20,7 @@ def format_video_for_ig_reels(input_path: str, output_path: str, audio_path: str
         # 1. 檢查並截斷影片長度 (超過 90 秒的部分切掉)
         if clip.duration > MAX_DURATION:
             print(f"⚠️ 影片長度 {clip.duration} 秒超過 Reels 限制，將自動裁切至 90 秒。")
-            clip = clip.subclip(0, MAX_DURATION)
+            clip = clip.subclipped(0, MAX_DURATION)
             
         # 2. 計算縮放比例以符合 1080x1920 (保持原始比例，多餘部分補黑邊)
         # 我們將影片縮放，使其寬度=1080 或 高度=1920，且不超出範圍
@@ -29,16 +29,16 @@ def format_video_for_ig_reels(input_path: str, output_path: str, audio_path: str
         
         if clip_ratio > target_ratio:
             # 影片比較「寬」，所以寬度對齊 1080，高度按比例縮小
-            resized_clip = clip.resize(width=TARGET_WIDTH)
+            resized_clip = clip.resized(width=TARGET_WIDTH)
         else:
             # 影片比較「高」，所以高度對齊 1920，寬度按比例縮小
-            resized_clip = clip.resize(height=TARGET_HEIGHT)
+            resized_clip = clip.resized(height=TARGET_HEIGHT)
             
         # 3. 建立 1080x1920 的純黑底色背景
-        background = ColorClip(size=(TARGET_WIDTH, TARGET_HEIGHT), color=(0,0,0)).set_duration(clip.duration)
+        background = ColorClip(size=(TARGET_WIDTH, TARGET_HEIGHT), color=(0,0,0)).with_duration(clip.duration)
         
         # 4. 將縮放後的影片置中貼在黑底上 (自動置中，上下或左右會補黑邊)
-        final_clip = CompositeVideoClip([background, resized_clip.set_position("center")])
+        final_clip = CompositeVideoClip([background, resized_clip.with_position("center")])
         
         # 加入 AI 配音 (如果有)
         new_audio = None
@@ -47,8 +47,8 @@ def format_video_for_ig_reels(input_path: str, output_path: str, audio_path: str
             new_audio = AudioFileClip(audio_path)
             # 如果音檔比影片短，直接套用；如果音檔比影片長，截斷音檔
             if new_audio.duration > final_clip.duration:
-                new_audio = new_audio.subclip(0, final_clip.duration)
-            final_clip = final_clip.set_audio(new_audio)
+                new_audio = new_audio.subclipped(0, final_clip.duration)
+            final_clip = final_clip.with_audio(new_audio)
         
         # 5. 輸出符合 IG 業界標準的 H.264 mp4 影片
         print("⚙️ 正在轉換為 IG 相容的 H.264 / AAC 編碼格式...")

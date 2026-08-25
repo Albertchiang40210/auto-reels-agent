@@ -59,11 +59,20 @@
                 <div id="result" class="result hidden">
                     <div class="caption-container column-layout">
                         <h3>📝 3. 人工審閱 (可自由修改)</h3>
+                        <div id="suggestionsBox" class="hidden" style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 8px 0; color: #b45309;">💡 總編輯優化建議 (根據最新搜尋與歷史數據)</h4>
+                            <p id="suggestionsText" style="margin: 0; font-size: 0.95rem; color: #78350f;"></p>
+                        </div>
                         
-                        <label for="captionEditor">IG 貼文文案：</label>
+                        <h4 style="margin: 10px 0; color: #334155;">選擇文案風格：</h4>
+                        <div id="optionsContainer" class="options-container" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <!-- 卡片會由 JS 動態生成 -->
+                        </div>
+                        
+                        <label for="captionEditor">選定並微調 IG 貼文文案：</label>
                         <textarea id="captionEditor" rows="6"></textarea>
                         
-                        <label for="voiceEditor">影片配音腳本：</label>
+                        <label for="voiceEditor">選定並微調影片配音腳本：</label>
                         <textarea id="voiceEditor" rows="3"></textarea>
                         
                         <div style="margin: 10px 0; display: flex; align-items: center; gap: 10px;">
@@ -99,6 +108,11 @@
                 </div>
             </header>
             
+            <!-- 搜尋區塊 -->
+            <div id="feedSearchContainer" style="margin-bottom: 15px; padding: 0;">
+                <input type="text" id="feedSearchInput" placeholder="🔍 搜尋貼文關鍵字 (例如：iPhone)..." style="width: 100%; padding: 10px 15px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+            
             <!-- 貼文動態區塊 -->
             <div id="igFeed" class="ig-feed">
                 <!-- 這裡會由 JS 動態生成已發布的影片列表與模擬留言 -->
@@ -107,6 +121,22 @@
             
             <!-- 數據分析區塊 -->
             <div id="analyticsPanel" class="ig-feed hidden">
+                <!-- KPI 指標卡片 -->
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <div class="kpi-card" style="flex: 1; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 4px 10px rgba(59,130,246,0.3);">
+                        <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 5px;">總互動數</div>
+                        <div id="kpiTotalEngagement" style="font-size: 1.8rem; font-weight: 800;">-</div>
+                    </div>
+                    <div class="kpi-card" style="flex: 1; background: linear-gradient(135deg, #ec4899, #db2777); color: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 4px 10px rgba(236,72,153,0.3);">
+                        <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 5px;">平均點擊率 (CTR)</div>
+                        <div id="kpiAvgCtr" style="font-size: 1.8rem; font-weight: 800;">-</div>
+                    </div>
+                    <div class="kpi-card" style="flex: 1; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 4px 10px rgba(16,185,129,0.3); overflow: hidden;">
+                        <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 5px;">最佳互動貼文</div>
+                        <div id="kpiTopPost" style="font-size: 1rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.8rem;">-</div>
+                    </div>
+                </div>
+
                 <div class="analytics-card">
                     <h4 style="color:#1e293b; margin-bottom: 10px;">總互動數 (讚 & 留言)</h4>
                     <canvas id="engagementChart" height="200"></canvas>
@@ -127,6 +157,6 @@
 
     <!-- 載入 Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="script.js"></script>
+    <script src="script.js?v=2"></script>
 </body>
 </html>
